@@ -1,0 +1,136 @@
+---
+title: "Kickstarter Data"
+output: html_notebook
+---
+
+https://www.kaggle.com/kemical/kickstarter-projects 
+
+# Questions
+
+1. Which project categories have viewers that give the highest average donation?
+2. Per category, what's the success to failure rate/ratio of all projects?
+3. What Kickstarter categories have been most popular over time?
+
+```{r Import Libraries}
+library(tidyverse)
+library(lubridate)
+```
+```{r Import Data}
+ks2018 <- read_csv("./data/ks-2018.csv",col_names=TRUE)
+```
+
+```{r Data Cleaning}
+# Get rid of spaces in column names, replace with underscore
+colnames(ks2018) <- gsub(" ", "_",colnames(ks2018))
+```
+
+## Which project categories have viewers that give the highest average donation?
+> Technology
+
+```{r Highest Average Donation Per Project Category}
+
+# Roll up dataset into mean pledge per backer per category
+
+pledgeByCat <- ks2018 %>%
+    group_by(main_category) %>%
+    summarize(
+        pledged=sum(usd_pledged, na.rm = TRUE),
+        backers=sum(backers, na.rm = TRUE),
+        avg=pledged/backers) %>%
+    arrange(desc(avg))
+
+# Change main_category into a factor so ggplot will honor the sort order
+pledgeByCat$main_category <- factor(pledgeByCat$main_category, levels=pledgeByCat$main_category)
+
+# Plot bar chart of mean pledges
+
+pledgeByCatPlot <- ggplot(pledgeByCat, aes(x=main_category,y=avg,fill=avg)) + geom_col() + labs(title="Avg Pledge By Category Per Backer", x="Category",y="Avg Pledge Per Backer") + theme(axis.text.x=element_text(angle=90),legend.position = "null")
+print(pledgeByCatPlot)
+
+```
+
+## Per category, whats the success to failure rate/ratio of all projects?
+> Dance has the highest success rate, but a low number of projects overall
+
+```{r Success/Failure Ratio of All Projects, Per Category}
+
+# Roll up dataset
+successPerCat <- ks2018 %>%
+    group_by(main_category) %>%
+    summarize(
+        fails = sum(state == "failed", na.rm = TRUE),
+        success = sum(state == "successful", na.rm = TRUE),
+        success_rate = success / (success + fails) * 100
+    ) %>%
+    arrange(desc(success_rate))
+
+# Change main_category into a factor so ggplot will honor the sort order
+successPerCat$main_category <- factor(successPerCat$main_category, levels=successPerCat$main_category)
+
+# Plot bar chart
+successPerCatPlot <- ggplot(successPerCat, aes(x=main_category,y=success_rate,fill=success_rate)) + geom_col() + labs(title="Percent Success Per Category", x="Category",y="Percentage Successes") + theme(axis.text.x=element_text(angle=90),legend.position = "null")
+print(successPerCatPlot)
+
+failTotals <- ggplot(successPerCat, aes(x=main_category,y=fails)) + geom_col()
+
+successAndFails <- failTotals + geom_col(position="dodge", aes(y=success,fill=factor(success))) + theme(axis.text.x=element_text(angle=90),legend.position = "null")
+
+print(successAndFails)
+
+```
+
+```{r Success/Failure Ratio of All Projects, Per Category - scala ver}
+successPerCat <- ks2018 %>%
+  filter(state %in% c("successful", "failed")) %>%
+  group_by(main_category, state) %>%
+  summarize(category_count=n()) %>%
+  mutate(category_percent=category_count/sum(category_count)) %>%
+  arrange(desc(state), category_percent)
+
+# Change main_category into a factor so ggplot will honor the sort order
+
+successPerCat$main_category <- factor(successPerCat$main_category,
+                                      levels=unique(successPerCat$main_category))
+
+print(successPerCat$main_category)
+
+successTotals <- ggplot(successPerCat, aes(x=main_category, y=category_percent, fill=state)) + geom_col()
+successAndFails <- successTotals + 
+  geom_col(position="fill") + 
+  scale_fill_discrete(breaks=c("successful", "failed")) + 
+  scale_y_continuous(labels=scales::percent) +
+  theme(axis.text.x=element_text(angle=90),legend.position = "null")
+
+print(successAndFails)
+```
+
+## Trends in kickstarter categories over time
+
+> Hypothesis: kickstarter began with mainly tech projects and then expanded over time
+
+```{r Number of projects in Kickstarter categories over time}
+
+# Roll up dataset to number of projects per category per year
+catOverTime <- ks2018 %>%
+    select(deadline,main_category,category) %>%
+    mutate(year=year(deadline)) %>%
+    group_by(main_category,year) %>%
+    summarize(cat_total=n()) %>%
+    filter(year < 2018) %>%
+    arrange(year)
+
+# Line chart of projects per category per year
+catOverTimePlot <- ggplot(
+    catOverTime, 
+    aes(x=year,y=cat_total,colour=main_category)) + geom_line()
+
+print(catOverTimePlot)
+
+# Density plot of projects
+
+catDensity <- ggplot(
+    catOverTime,
+    aes(x=year,y=cat_total,colour=main_category)) + geom_density()
+
+print(catDensity)
+```
