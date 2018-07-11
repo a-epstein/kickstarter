@@ -117,7 +117,7 @@ catOverTime <- ks2018 %>%
     group_by(main_category,year) %>%
     summarize(cat_total=n()) %>%
     filter(year < 2018) %>%
-    arrange(year)
+    arrange(cat_total)
 
 # Line chart of projects per category per year
 catOverTimePlot <- ggplot(
@@ -126,11 +126,33 @@ catOverTimePlot <- ggplot(
 
 print(catOverTimePlot)
 
+# Unfortunately this isn't super readable?
+```
+
+```{r}
+
+# Roll up dataset to number of projects per category per year
+# Remove summarize because that frontloads the process that the density plot wants to do
+# which is counting the number of events
+
+catOverTime2 <- ks2018 %>%
+    select(deadline,main_category,category) %>%
+    mutate(year=year(deadline)) %>%
+    group_by(main_category,deadline) %>%
+    filter(year < 2018) %>%
+    arrange(deadline)
+
 # Density plot of projects
+# histogram - plotting frequency of an event in the y axis, versus the scale/groups in the x axis
 
 catDensity <- ggplot(
-    catOverTime,
-    aes(x=year,y=cat_total,colour=main_category)) + geom_density()
+    catOverTime2,
+    aes(x=deadline,fill=main_category,colour=main_category)) + geom_density(alpha = 0.1)
 
 print(catDensity)
 ```
+
+```{r}
+
+```
+
