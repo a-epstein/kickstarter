@@ -30,7 +30,6 @@ colnames(ks2018) <- gsub(" ", "_",colnames(ks2018))
 ```{r Highest Average Donation Per Project Category}
 
 # Roll up dataset into mean pledge per backer per category
-
 pledgeByCat <- ks2018 %>%
     group_by(main_category) %>%
     summarize(
@@ -43,8 +42,8 @@ pledgeByCat <- ks2018 %>%
 pledgeByCat$main_category <- factor(pledgeByCat$main_category, levels=pledgeByCat$main_category)
 
 # Plot bar chart of mean pledges
-
 pledgeByCatPlot <- ggplot(pledgeByCat, aes(x=main_category,y=avg,fill=avg)) + geom_col() + labs(title="Avg Pledge By Category Per Backer", x="Category",y="Avg Pledge Per Backer") + theme(axis.text.x=element_text(angle=90),legend.position = "null")
+
 print(pledgeByCatPlot)
 
 ```
@@ -69,6 +68,7 @@ successPerCat$main_category <- factor(successPerCat$main_category, levels=succes
 
 # Plot bar chart
 successPerCatPlot <- ggplot(successPerCat, aes(x=main_category,y=success_rate,fill=success_rate)) + geom_col() + labs(title="Percent Success Per Category", x="Category",y="Percentage Successes") + theme(axis.text.x=element_text(angle=90),legend.position = "null")
+
 print(successPerCatPlot)
 
 failTotals <- ggplot(successPerCat, aes(x=main_category,y=fails)) + geom_col()
@@ -80,6 +80,7 @@ print(successAndFails)
 ```
 
 ```{r Success/Failure Ratio of All Projects, Per Category - scala ver}
+
 successPerCat <- ks2018 %>%
   filter(state %in% c("successful", "failed")) %>%
   group_by(main_category, state) %>%
@@ -88,7 +89,6 @@ successPerCat <- ks2018 %>%
   arrange(desc(state), category_percent)
 
 # Change main_category into a factor so ggplot will honor the sort order
-
 successPerCat$main_category <- factor(successPerCat$main_category,
                                       levels=unique(successPerCat$main_category))
 
@@ -128,13 +128,15 @@ print(catOverTimePlot)
 
 # Unfortunately this isn't super readable?
 ```
+# Retrying the above data with a modified dplyr filter and a density plot, to try and get a better visual of the data
+
+> Is there a way to reduce the number of distinct categories so we can only view the top 10% most popular categories?
 
 ```{r}
 
 # Roll up dataset to number of projects per category per year
 # Remove summarize because that frontloads the process that the density plot wants to do
 # which is counting the number of events
-
 catOverTime2 <- ks2018 %>%
     select(deadline,main_category,category) %>%
     mutate(year=year(deadline)) %>%
@@ -144,15 +146,9 @@ catOverTime2 <- ks2018 %>%
 
 # Density plot of projects
 # histogram - plotting frequency of an event in the y axis, versus the scale/groups in the x axis
-
 catDensity <- ggplot(
     catOverTime2,
     aes(x=deadline,fill=main_category,colour=main_category)) + geom_density(alpha = 0.1)
 
 print(catDensity)
 ```
-
-```{r}
-
-```
-
