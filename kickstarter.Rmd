@@ -108,7 +108,7 @@ print(successAndFails)
 
 > Hypothesis: kickstarter began with mainly tech projects and then expanded over time
 
-```{r Number of projects in Kickstarter categories over time}
+```{r Line Plot}
 
 # Roll up dataset to number of projects per category per year
 catOverTime <- ks2018 %>%
@@ -128,11 +128,11 @@ print(catOverTimePlot)
 
 # Unfortunately this isn't super readable?
 ```
-# Retrying the above data with a modified dplyr filter and a density plot, to try and get a better visual of the data
+## Retrying the above data with a modified dplyr filter and a density plot, to try and get a better visual of the data
 
 > Is there a way to reduce the number of distinct categories so we can only view the top 10% most popular categories?
 
-```{r}
+```{r Density Map}
 
 # Roll up dataset to number of projects per category per year
 # Remove summarize because that frontloads the process that the density plot wants to do
@@ -152,3 +152,38 @@ catDensity <- ggplot(
 
 print(catDensity)
 ```
+
+## Trying a heatmap to visualize the trends in categories
+
+> According to our heat map, art projects like film/video and music were most popular. Games and technology did not become popular categories until later.
+
+```{r Heatmap}
+
+# Redo rolling up dataset to include deadline vector
+catHeat <- ks2018 %>%
+    select(deadline,main_category,category) %>%
+    mutate(year=year(deadline)) %>%
+    group_by(main_category,year) %>%
+    summarize(
+        cat_total=n(), 
+        deadline=deadline[1]) %>%
+    filter(year < 2018) %>%
+    arrange(year)
+
+# Heatmap of categories over time
+catHeatPlot <- ggplot(
+    catHeat, 
+    aes(x=year,y=main_category)) + 
+    geom_tile(aes(fill=cat_total)) + 
+    scale_fill_gradient(low = 'white', high = 'red') +
+    scale_x_continuous(breaks = function(x) unique(floor(pretty(x)))) + 
+    labs(title="Most Popular Kickstarter Categories Per Year", x="Year",y="Main Category")
+
+print(catHeatPlot)
+
+```
+
+## Notes
+> summarize will strip out anything that isnt in the group by, mutation, or in the summarize itself
+> so you need to reference rows in the summarize if you want to include them but they're not in group by or mutate
+> Has kickstarter peaked in its popularity as a crowdfunding platform?
