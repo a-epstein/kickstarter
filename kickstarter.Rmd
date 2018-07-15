@@ -14,7 +14,11 @@ https://www.kaggle.com/kemical/kickstarter-projects
 ```{r Import Libraries}
 library(tidyverse)
 library(lubridate)
+library(scales)
+library(MASS)
+library(viridis)
 ```
+
 ```{r Import Data}
 ks2018 <- read_csv("./data/ks-2018.csv",col_names=TRUE)
 ```
@@ -186,4 +190,41 @@ print(catHeatPlot)
 ## Notes
 > summarize will strip out anything that isnt in the group by, mutation, or in the summarize itself
 > so you need to reference rows in the summarize if you want to include them but they're not in group by or mutate
-> Has kickstarter peaked in its popularity as a crowdfunding platform?
+
+---
+
+## Has kickstarter peaked in its popularity as a crowdfunding platform?
+> There was a peak in Kickstarter popularity in 2015, and its popularity has declined since then
+
+```{r Scatterplot}
+
+# Define density function
+get_density <- function(x, y, n = 100) {
+  dens <- MASS::kde2d(x = x, y = y, n = n)
+  ix <- findInterval(x, dens$x)
+  iy <- findInterval(y, dens$y)
+  ii <- cbind(ix, iy)
+  return(dens$z[ii])
+}
+
+# Frequency of projects y axis, x axis over time
+popOverTime <- ks2018 %>%
+    group_by(deadline) %>%
+    summarize(count=n()) %>%
+    mutate(density=get_density(as.integer(deadline), count))
+
+# Scatterplot with a trend line
+popOverTimePlot <- ggplot(popOverTime, aes(x=deadline,y=count,color=density)) +
+    geom_point() +
+    geom_smooth(method="loess", color="Dark Blue") +
+    scale_y_continuous(limits=c(0, 400)) + # Remove values over 500
+    scale_x_date(date_breaks = "1 year",
+                 labels=date_format("%Y"),
+                 limits = as.Date(c('2009-01-01','2018-01-01'))) +
+    labs(title="Frequency of Kickstarter Projects over Time") +
+    scale_color_viridis() +
+    theme(legend.position="none")
+
+print(popOverTimePlot)
+```
+
