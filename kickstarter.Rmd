@@ -14,6 +14,9 @@ https://www.kaggle.com/kemical/kickstarter-projects
 ```{r Import Libraries}
 library(tidyverse)
 library(lubridate)
+library(scales)
+library(MASS)
+library(viridis)
 ```
 
 ```{r Import Data}
@@ -191,19 +194,36 @@ print(catHeatPlot)
 ---
 
 ## Has kickstarter peaked in its popularity as a crowdfunding platform?
+> There was a peak in Kickstarter popularity in 2015, and its popularity has declined since then
 
-```{r}
+```{r Scatterplot}
+
+# Define density function
+get_density <- function(x, y, n = 100) {
+  dens <- MASS::kde2d(x = x, y = y, n = n)
+  ix <- findInterval(x, dens$x)
+  iy <- findInterval(y, dens$y)
+  ii <- cbind(ix, iy)
+  return(dens$z[ii])
+}
+
 # Frequency of projects y axis, x axis over time
 popOverTime <- ks2018 %>%
-    select(deadline) %>%
     group_by(deadline) %>%
-    summarize(count=n())
+    summarize(count=n()) %>%
+    mutate(density=get_density(as.integer(deadline), count))
 
-
-# scatterplot with a trend line
-popOverTimePlot <- ggplot(popOverTime, aes(x=deadline,y=count)) +
-    geom_point(aes(color=count)) +
-    geom_smooth(model=lm)
+# Scatterplot with a trend line
+popOverTimePlot <- ggplot(popOverTime, aes(x=deadline,y=count,color=density)) +
+    geom_point() +
+    geom_smooth(method="loess", color="Dark Blue") +
+    scale_y_continuous(limits=c(0, 400)) + # Remove values over 500
+    scale_x_date(date_breaks = "1 year",
+                 labels=date_format("%Y"),
+                 limits = as.Date(c('2009-01-01','2018-01-01'))) +
+    labs(title="Frequency of Kickstarter Projects over Time") +
+    scale_color_viridis() +
+    theme(legend.position="none")
 
 print(popOverTimePlot)
 ```
