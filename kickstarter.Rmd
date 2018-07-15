@@ -15,6 +15,7 @@ https://www.kaggle.com/kemical/kickstarter-projects
 library(tidyverse)
 library(lubridate)
 ```
+
 ```{r Import Data}
 ks2018 <- read_csv("./data/ks-2018.csv",col_names=TRUE)
 ```
@@ -186,4 +187,24 @@ print(catHeatPlot)
 ## Notes
 > summarize will strip out anything that isnt in the group by, mutation, or in the summarize itself
 > so you need to reference rows in the summarize if you want to include them but they're not in group by or mutate
-> Has kickstarter peaked in its popularity as a crowdfunding platform?
+
+---
+
+## Has kickstarter peaked in its popularity as a crowdfunding platform?
+
+```{r}
+# Frequency of projects y axis, x axis over time
+popOverTime <- ks2018 %>%
+    select(deadline) %>%
+    group_by(deadline) %>%
+    summarize(count=n())
+
+
+# scatterplot with a trend line
+popOverTimePlot <- ggplot(popOverTime, aes(x=deadline,y=count)) +
+    geom_point(aes(color=count)) +
+    geom_smooth(model=lm)
+
+print(popOverTimePlot)
+```
+
