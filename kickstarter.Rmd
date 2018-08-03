@@ -19,9 +19,11 @@ library(MASS)
 library(viridis)
 ```
 
-```{r Import Data results='hide'}
+```{r Import Data}
 
-ks2018 <- read_csv("./data/ks-2018.csv",col_names=TRUE)
+# Use progress=FALSE to remove the progress bar!
+
+ks2018 <- read_csv("./data/ks-2018.csv",col_names=TRUE, progress=FALSE) 
 ```
 
 ```{r Data Cleaning}
@@ -117,7 +119,6 @@ print(successAndFails)
 
 # Roll up dataset to number of projects per category per year
 catOverTime <- ks2018 %>%
-    select(deadline,main_category,category) %>%
     mutate(year=year(deadline)) %>%
     group_by(main_category,year) %>%
     summarize(cat_total=n()) %>%
@@ -143,7 +144,6 @@ print(catOverTimePlot)
 # Remove summarize because that frontloads the process that the density plot wants to do
 # which is counting the number of events
 catOverTime2 <- ks2018 %>%
-    select(deadline,main_category,category) %>%
     mutate(year=year(deadline)) %>%
     group_by(main_category,deadline) %>%
     filter(year < 2018) %>%
@@ -166,7 +166,6 @@ print(catDensity)
 
 # Redo rolling up dataset to include deadline vector
 catHeat <- ks2018 %>%
-    select(deadline,main_category,category) %>%
     mutate(year=year(deadline)) %>%
     group_by(main_category,year) %>%
     summarize(
@@ -196,9 +195,6 @@ print(catHeatPlot)
 ## Has kickstarter peaked in its popularity as a crowdfunding platform? 
 > There was a peak in Kickstarter popularity in 2015, and its popularity has declined since then
 
-
-## Has kickstarter peaked in its popularity as a crowdfunding platform?
-> There was a peak in Kickstarter popularity in 2015, and its popularity has declined since then
 
 ```{r Scatterplot}
 
