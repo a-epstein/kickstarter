@@ -18,12 +18,9 @@ library(scales)
 library(MASS)
 library(viridis)
 ```
-<<<<<<< HEAD
-```{r Import Data results='hide'}
-=======
 
-```{r Import Data}
->>>>>>> 76d1788e603427ca097356e60ab6761860d4a9ad
+```{r Import Data results='hide'}
+
 ks2018 <- read_csv("./data/ks-2018.csv",col_names=TRUE)
 ```
 
@@ -195,20 +192,16 @@ print(catHeatPlot)
 > summarize will strip out anything that isnt in the group by, mutation, or in the summarize itself
 > so you need to reference rows in the summarize if you want to include them but they're not in group by or mutate
 
-<<<<<<< HEAD
+
 ## Has kickstarter peaked in its popularity as a crowdfunding platform? 
 > There was a peak in Kickstarter popularity in 2015, and its popularity has declined since then
 
-```{r}
-=======
----
 
 ## Has kickstarter peaked in its popularity as a crowdfunding platform?
 > There was a peak in Kickstarter popularity in 2015, and its popularity has declined since then
 
 ```{r Scatterplot}
 
->>>>>>> 76d1788e603427ca097356e60ab6761860d4a9ad
 # Define density function
 get_density <- function(x, y, n = 100) {
   dens <- MASS::kde2d(x = x, y = y, n = n)
@@ -217,18 +210,13 @@ get_density <- function(x, y, n = 100) {
   ii <- cbind(ix, iy)
   return(dens$z[ii])
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> 76d1788e603427ca097356e60ab6761860d4a9ad
 # Frequency of projects y axis, x axis over time
 popOverTime <- ks2018 %>%
     group_by(deadline) %>%
     summarize(count=n()) %>%
     mutate(density=get_density(as.integer(deadline), count))
-=======
 
->>>>>>> 76d1788e603427ca097356e60ab6761860d4a9ad
 # Scatterplot with a trend line
 popOverTimePlot <- ggplot(popOverTime, aes(x=deadline,y=count,color=density)) +
     geom_point() +
@@ -240,10 +228,7 @@ popOverTimePlot <- ggplot(popOverTime, aes(x=deadline,y=count,color=density)) +
     labs(title="Frequency of Kickstarter Projects over Time") +
     scale_color_viridis() +
     theme(legend.position="none")
-<<<<<<< HEAD
-=======
 
->>>>>>> 76d1788e603427ca097356e60ab6761860d4a9ad
 print(popOverTimePlot)
 ```
 
